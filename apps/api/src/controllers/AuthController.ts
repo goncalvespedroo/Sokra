@@ -29,4 +29,9 @@ export class AuthController {
 
     return res.status(201).json(userWithoutPassword);
   }
+
+  async logIn(req: Request, res: Response){
+    
+  }
+
 }
