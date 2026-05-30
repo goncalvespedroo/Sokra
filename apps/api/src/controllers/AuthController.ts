@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import User from "../entities/Users";
 import { AppDataSource } from "../database";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 export class AuthController {
   async register(req: Request, res: Response) {
@@ -30,8 +31,31 @@ export class AuthController {
     return res.status(201).json(userWithoutPassword);
   }
 
-  async logIn(req: Request, res: Response){
-    
-  }
+  async logIn(req: Request, res: Response) {
+    const { email, password } = req.body;
+    const userRepository = AppDataSource.getRepository(User);
 
+    const existingUser = await userRepository.findOneBy({ email: email });
+
+    if (!existingUser) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      existingUser.password,
+    );
+
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const token = jwt.sign({
+      id: existingUser.id,
+      email: existingUser.email
+    }, 'secret', {expiresIn: '8h'});
+
+    return res.status(200).json({token});
+
+  }
 }
