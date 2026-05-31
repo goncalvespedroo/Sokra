@@ -58,4 +58,23 @@ export class AuthController {
     return res.status(200).json({token});
 
   }
+
+  async getUser(req: Request, res: Response) {
+    const userId = (req as any).user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const userRepository = AppDataSource.getRepository(User);
+    const user = await userRepository.findOneBy({ id: userId });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const { password: _, ...userWithoutPassword } = user;
+
+    return res.status(200).json(userWithoutPassword);
+  }
 }
